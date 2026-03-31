@@ -6,6 +6,7 @@ import { voiceRootPosition } from '@/theory/voicing';
 import CircleMap from '@/components/CircleMap/CircleMap';
 import ProgressionBar from '@/components/ProgressionBar/ProgressionBar';
 import PlaybackControls from '@/components/PlaybackControls/PlaybackControls';
+import ExportMenu from '@/components/ExportMenu/ExportMenu';
 import { useProgressionStore } from '@/store/progressionStore';
 import { useState } from 'react';
 
@@ -195,7 +196,7 @@ function App() {
       </div>
 
       {/* Playback Controls */}
-      <div className="mt-4">
+      <div className="mt-4 flex items-center gap-4">
         <PlaybackControls
           bpm={bpm}
           onBpmChange={setBpm}
@@ -205,6 +206,7 @@ function App() {
           onLoopToggle={toggleLoop}
           disabled={slots.length === 0}
         />
+        <ExportMenu slots={slots} bpm={bpm} />
       </div>
 
       {/* Reverb control */}
