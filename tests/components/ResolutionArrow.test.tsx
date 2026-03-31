@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 
 import ResolutionArrow from '@/components/ResolutionArrow/ResolutionArrow';
-import { CIRCLE_OF_FIFTHS } from '@/theory';
 
 function getNodePosition(index: number): { x: number; y: number } {
   const angle = (index * 30 - 90) * (Math.PI / 180);

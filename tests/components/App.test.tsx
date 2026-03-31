@@ -8,10 +8,12 @@ vi.mock('@/audio', () => ({
   playChord: vi.fn(),
   setReverbMix: vi.fn(),
   getReverbMix: vi.fn(() => 0.3),
+  playProgression: vi.fn(),
+  stopProgression: vi.fn(),
 }));
 
 import App from '@/App';
-import { startAudio, playChord, setReverbMix } from '@/audio';
+import { startAudio, setReverbMix } from '@/audio';
 
 describe('App', () => {
   beforeEach(() => {
@@ -36,29 +38,33 @@ describe('App', () => {
   it('renders 7 chord chips for C Ionian', () => {
     const { container } = render(<App />);
     // C Ionian: Cmaj7, Dm7, Em7, Fmaj7, G7, Am7, Bø7
-    const buttons = container.querySelectorAll('button');
+    // The chord chips are the buttons inside the "Key of" section
+    const chipSection = container.querySelector('.max-w-xl');
+    const buttons = chipSection ? chipSection.querySelectorAll('button') : [];
     expect(buttons.length).toBe(7);
   });
 
   it('renders the reverb slider', () => {
     const { container } = render(<App />);
-    const slider = container.querySelector('input[type="range"]');
-    expect(slider).toBeTruthy();
-    expect(slider!.getAttribute('min')).toBe('0');
-    expect(slider!.getAttribute('max')).toBe('1');
+    const sliders = container.querySelectorAll('input[type="range"]');
+    // Should have reverb slider and BPM slider
+    expect(sliders.length).toBeGreaterThanOrEqual(1);
+    const reverbSlider = Array.from(sliders).find(s => s.getAttribute('min') === '0');
+    expect(reverbSlider).toBeTruthy();
+    expect(reverbSlider!.getAttribute('max')).toBe('1');
   });
 
   it('calls setReverbMix when slider changes', () => {
     const { container } = render(<App />);
-    const slider = container.querySelector('input[type="range"]')!;
-    fireEvent.change(slider, { target: { value: '0.75' } });
-    // React effect runs setReverbMix
+    // Find the reverb slider specifically
+    const sliders = container.querySelectorAll('input[type="range"]');
+    const reverbSlider = Array.from(sliders).find(s => s.getAttribute('min') === '0')!;
+    fireEvent.change(reverbSlider, { target: { value: '0.75' } });
     expect(setReverbMix).toHaveBeenCalled();
   });
 
   it('initializes audio and plays chord when a node is clicked', async () => {
     const { getByText } = render(<App />);
-    // Click on G node
     const gNode = getByText('G').closest('g')!;
     fireEvent.click(gNode);
     
@@ -69,8 +75,8 @@ describe('App', () => {
 
   it('plays a chord when a chip button is clicked', async () => {
     const { container } = render(<App />);
-    const buttons = container.querySelectorAll('button');
-    // Click the first chip (I chord)
+    const chipSection = container.querySelector('.max-w-xl');
+    const buttons = chipSection ? chipSection.querySelectorAll('button') : [];
     fireEvent.click(buttons[0]);
     
     await waitFor(() => {
@@ -80,14 +86,11 @@ describe('App', () => {
 
   it('changes selected key when a different node is clicked', () => {
     const { getByText, queryByText } = render(<App />);
-    // Initially "Key of C"
     expect(getByText('Key of C — Ionian')).toBeInTheDocument();
     
-    // Click G node
     const gNode = getByText('G').closest('g')!;
     fireEvent.click(gNode);
     
-    // Should now show "Key of G"
     expect(getByText('Key of G — Ionian')).toBeInTheDocument();
     expect(queryByText('Key of C — Ionian')).toBeNull();
   });
@@ -100,7 +103,6 @@ describe('App', () => {
 
   it('reverb slider shows current value', () => {
     const { container } = render(<App />);
-    // Default reverb is 0.30
     const spans = container.querySelectorAll('span');
     const reverbValue = Array.from(spans).find(s => s.textContent === '0.30');
     expect(reverbValue).toBeTruthy();
